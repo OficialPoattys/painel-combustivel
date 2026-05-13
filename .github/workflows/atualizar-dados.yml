@@ -1,0 +1,87 @@
+name: Atualizar Dados de Combustíveis
+
+on:
+  # Roda toda segunda-feira às 10h (horário de Brasília = 13h UTC)
+  # A ANP publica o LPC às segundas-feiras com dados da semana anterior
+  schedule:
+    - cron: "0 13 * * 1"
+
+  # Permite rodar manualmente pelo GitHub (útil para testes)
+  workflow_dispatch:
+
+jobs:
+  coletar-e-processar:
+    name: Coletar ANP e Gerar dados.json
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write   # necessário para commitar o dados.json de volta ao repo
+
+    steps:
+      # ── 1. Clona o repositório ──────────────────────────────────────────────
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # histórico completo para não perder dados antigos
+
+      # ── 2. Configura Python ─────────────────────────────────────────────────
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: coletor/requirements.txt
+
+      # ── 3. Instala dependências ─────────────────────────────────────────────
+      - name: Instalar dependências Python
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r coletor/requirements.txt
+
+      # ── 4. Roda o coletor ───────────────────────────────────────────────────
+      - name: Coletar dados da ANP
+        run: |
+          echo "Iniciando coleta dos dados da ANP..."
+          python coletor/coletar.py
+        env:
+          PYTHONUNBUFFERED: "1"   # garante que os prints aparecem no log em tempo real
+
+      # ── 5. Calcula margens e gera dados.json ────────────────────────────────
+      - name: Calcular margens e gerar dados.json
+        run: |
+          echo "Calculando margens e gerando dados.json..."
+          python coletor/calcular_margens.py
+        env:
+          PYTHONUNBUFFERED: "1"
+
+      # ── 6. Copia dados.json para frontend/public/ (necessário para o Vite servir) ──
+      - name: Copiar dados.json para frontend/public/
+        run: |
+          mkdir -p frontend/public
+          cp dados/dados.json frontend/public/dados.json
+          echo "dados.json copiado para frontend/public/"
+
+      # ── 7. Commita tudo de volta ao repo ────────────────────────────────────
+      - name: Commitar dados atualizados
+        run: |
+          git config --global user.name  "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add dados/dados.json
+          git add dados/brutos/
+          git add frontend/public/dados.json
+
+          git diff --staged --quiet || git commit -m "chore: atualizar dados ANP - $(date +'%Y-W%W')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 8. Resumo ────────────────────────────────────────────────────────────
+      - name: Resumo da execução
+        if: always()
+        run: |
+          echo "=============================="
+          echo "  Execução: $(date +'%d/%m/%Y %H:%M')"
+          echo "=============================="
+          [ -f dados/dados.json ]           && echo "✅ dados/dados.json OK"           || echo "❌ dados/dados.json NÃO gerado"
+          [ -f frontend/public/dados.json ] && echo "✅ frontend/public/dados.json OK" || echo "❌ Cópia para frontend/public/ falhou"
