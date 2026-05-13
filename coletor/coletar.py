@@ -1,11 +1,7 @@
 """
 coletar.py
-Baixa os CSVs mensais da ANP (Série Histórica de Preços de Combustíveis)
-e os prepara para o processamento de margens.
-
-URL real confirmada (por mês):
-https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/
-  arquivos/shpc/dsan/{ANO}/precos-gasolina-etanol-{MES}.csv
+Baixa os arquivos semanais (.csv) e mensais (.xlsx) da ANP
+e prepara os dados para o cálculo de margens.
 """
 
 import requests
@@ -17,22 +13,30 @@ from pathlib import Path
 
 ESTADOS_ALVO = ["SP", "RJ", "MG", "RS", "PR", "BA", "GO", "DF"]
 
-# Nomes REAIS dos produtos no CSV da ANP (confirmar via amostra do arquivo)
-COMBUSTIVEIS_ALVO = ["GASOLINA", "ETANOL", "DIESEL", "DIESEL S10"]
+# Nomes exatos como aparecem no campo "Produto" dos arquivos da ANP
+COMBUSTIVEIS_ALVO = [
+    "GASOLINA COMUM",
+    "ETANOL HIDRATADO",
+    "DIESEL",
+    "DIESEL S10",
+    "GASOLINA ADITIVADA",
+]
 
-# Base da URL da ANP para os arquivos mensais
-ANP_BASE = (
-    "https://www.gov.br/anp/pt-br/centrais-de-conteudo/"
-    "dados-abertos/arquivos/shpc/dsan"
-)
+# ─── URLs FIXAS (confirmadas por você) ────────────────────────────────────────
+URLS_SEMANAIS = [
+    "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/shpc/qus/ultimas-4-semanas-gasolina-etanol.csv",
+    "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/shpc/qus/ultimas-4-semanas-diesel-gnv.csv",
+]
 
-# Quantos meses de histórico baixar (4 meses ≈ 12-16 semanas de dados)
-MESES_HISTORICO = 4
+# Para os mensais, geramos dinamicamente o mês/ano
+BASE_MENSAL = "https://www.gov.br/anp/pt-br/centrais-de-conteudo/dados-abertos/arquivos/shpc/dsan"
 
-DIR_DADOS_BRUTOS      = Path(__file__).parent.parent / "dados" / "brutos"
-DIR_DADOS_PROCESSADOS = Path(__file__).parent.parent / "dados"
+MESES_HISTORICO = 4  # Quantos meses baixar
 
-# Colunas mínimas esperadas no CSV da ANP
+DIR_DADOS_BRUTOS = Path(__file__).parent.parent / "dados" / "brutos"
+DIR_DADOS = Path(__file__).parent.parent / "dados"
+ARQUIVO_HISTORICO = DIR_DADOS_BRUTOS / "agregado_consolidado.csv"
+
 COLUNAS_ESPERADAS = {
     "Regiao - Sigla", "Estado - Sigla", "Municipio", "Revenda",
     "CNPJ da Revenda", "Produto", "Data da Coleta",
@@ -43,15 +47,15 @@ COLUNAS_ESPERADAS = {
 
 def criar_diretorios():
     DIR_DADOS_BRUTOS.mkdir(parents=True, exist_ok=True)
-    DIR_DADOS_PROCESSADOS.mkdir(parents=True, exist_ok=True)
+    DIR_DADOS.mkdir(parents=True, exist_ok=True)
     print("[OK] Diretórios prontos.")
 
 
-def urls_para_baixar(meses: int = MESES_HISTORICO) -> list:
-    """Gera lista de URLs para os últimos N meses."""
+def gerar_urls_mensais() -> list:
+    """Gera lista de URLs para os últimos N meses (arquivos .xlsx)."""
     urls = []
     hoje = datetime.now()
-    for i in range(meses):
+    for i in range(MESES_HISTORICO):
         mes_offset = hoje.month - i
         if mes_offset <= 0:
             mes = mes_offset + 12
@@ -62,8 +66,8 @@ def urls_para_baixar(meses: int = MESES_HISTORICO) -> list:
         mes_str = str(mes).zfill(2)
         urls.append({
             "ref": f"{ano}-{mes_str}",
-            "url_gasolina_etanol": f"{ANP_BASE}/{ano}/precos-gasolina-etanol-{mes_str}.csv",
-            "url_diesel_gnv":      f"{ANP_BASE}/{ano}/precos-diesel-gnv-{mes_str}.csv",
+            "url_gasolina_etanol": f"{BASE_MENSAL}/{ano}/{mes_str}-dados-abertos-precos-gasolina-etanol.xlsx",
+            "url_diesel_gnv":      f"{BASE_MENSAL}/{ano}/{mes_str}-dados-abertos-precos-diesel-gnv.xlsx",
         })
     return urls
 
@@ -91,8 +95,20 @@ def baixar_arquivo(url: str, caminho: Path) -> bool:
         return False
 
 
-def carregar_csv_anp(caminho: Path) -> pd.DataFrame | None:
-    """Carrega CSV da ANP com encoding UTF-8 com BOM (padrão atual) ou latin-1."""
+def carregar_arquivo(caminho: Path) -> pd.DataFrame | None:
+    """Carrega CSV ou XLSX da ANP e retorna DataFrame padronizado."""
+    # Tenta descobrir o formato pela extensão
+    if caminho.suffix.lower() == ".csv":
+        return _carregar_csv(caminho)
+    elif caminho.suffix.lower() in [".xlsx", ".xls"]:
+        return _carregar_excel(caminho)
+    else:
+        print(f"  [ERRO] Formato desconhecido: {caminho.suffix}")
+        return None
+
+
+def _carregar_csv(caminho: Path) -> pd.DataFrame | None:
+    """Carrega arquivo CSV com encoding e separador adequados."""
     for enc in ["utf-8-sig", "latin-1"]:
         try:
             df = pd.read_csv(
@@ -100,29 +116,48 @@ def carregar_csv_anp(caminho: Path) -> pd.DataFrame | None:
                 dtype=str, low_memory=False,
             )
             df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
-            # Verifica schema mínimo
-            faltando = COLUNAS_ESPERADAS - set(df.columns)
-            if faltando:
-                print(f"  [ERRO SCHEMA] Colunas faltando: {faltando}")
-                print(f"  [INFO] Colunas presentes: {list(df.columns)}")
-                return None
-            # Converte tipos
-            df["Valor de Venda"] = pd.to_numeric(
-                df["Valor de Venda"].str.replace(",", ".").str.strip(), errors="coerce"
-            )
-            df["Valor de Compra"] = pd.to_numeric(
-                df["Valor de Compra"].str.replace(",", ".").str.strip(), errors="coerce"
-            )
-            df["Data da Coleta"] = pd.to_datetime(
-                df["Data da Coleta"].str.strip(), format="%d/%m/%Y", errors="coerce"
-            )
-            for col in ["Estado - Sigla", "Produto", "Bandeira", "Municipio"]:
-                df[col] = df[col].str.strip().str.upper()
-            return df
+            return _padronizar_dataframe(df)
         except Exception:
             continue
-    print(f"  [ERRO] Não foi possível ler {caminho.name}")
+    print(f"  [ERRO] Não foi possível ler CSV: {caminho.name}")
     return None
+
+
+def _carregar_excel(caminho: Path) -> pd.DataFrame | None:
+    """Carrega arquivo Excel (xlsx) da ANP."""
+    try:
+        df = pd.read_excel(caminho, dtype=str, engine="openpyxl")
+        df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
+        return _padronizar_dataframe(df)
+    except Exception as e:
+        print(f"  [ERRO] Não foi possível ler Excel: {caminho.name} — {e}")
+        return None
+
+
+def _padronizar_dataframe(df: pd.DataFrame) -> pd.DataFrame | None:
+    """Converte tipos, verifica schema e padroniza strings."""
+    # Verifica schema mínimo
+    faltando = COLUNAS_ESPERADAS - set(df.columns)
+    if faltando:
+        print(f"  [ERRO SCHEMA] Colunas faltando: {faltando}")
+        print(f"  [INFO] Colunas presentes: {list(df.columns)}")
+        return None
+
+    # Converte tipos numéricos e data
+    df["Valor de Venda"] = pd.to_numeric(
+        df["Valor de Venda"].str.replace(",", ".").str.strip(), errors="coerce"
+    )
+    df["Valor de Compra"] = pd.to_numeric(
+        df["Valor de Compra"].str.replace(",", ".").str.strip(), errors="coerce"
+    )
+    df["Data da Coleta"] = pd.to_datetime(
+        df["Data da Coleta"].str.strip(), format="%d/%m/%Y", errors="coerce"
+    )
+    for col in ["Estado - Sigla", "Produto", "Bandeira", "Municipio"]:
+        if col in df.columns:
+            df[col] = df[col].str.strip().str.upper()
+
+    return df
 
 
 def filtrar_e_agregar(df: pd.DataFrame) -> pd.DataFrame:
@@ -150,6 +185,30 @@ def filtrar_e_agregar(df: pd.DataFrame) -> pd.DataFrame:
     ).round(4)
 
 
+def carregar_historico_existente() -> pd.DataFrame:
+    """Carrega o CSV histórico já existente, se houver."""
+    if ARQUIVO_HISTORICO.exists():
+        try:
+            df = pd.read_csv(ARQUIVO_HISTORICO)
+            print(f"[OK] Histórico existente carregado: {len(df)} registros.")
+            return df
+        except Exception as e:
+            print(f"[AVISO] Não foi possível carregar histórico existente: {e}")
+    return pd.DataFrame()
+
+
+def salvar_historico(df: pd.DataFrame):
+    """Salva o DataFrame consolidado, removendo duplicatas."""
+    if df.empty:
+        return
+    df = df.drop_duplicates(
+        subset=["semana_ref", "Estado - Sigla", "Produto", "Bandeira"]
+    )
+    ARQUIVO_HISTORICO.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(ARQUIVO_HISTORICO, index=False, encoding="utf-8")
+    print(f"[OK] Histórico salvo: {len(df)} registros em {ARQUIVO_HISTORICO.name}")
+
+
 # ─── Ponto de entrada ─────────────────────────────────────────────────────────
 
 def main():
@@ -159,40 +218,59 @@ def main():
     print("=" * 60)
 
     criar_diretorios()
-    alvos = urls_para_baixar(MESES_HISTORICO)
-    frames = []
 
-    for alvo in alvos:
+    frames_novos = []
+
+    # ── 1. Coleta SEMANAL (últimas 4 semanas) ────────────────────────────────
+    print("\n[COLETA SEMANAL] Últimas 4 semanas")
+    for url in URLS_SEMANAIS:
+        nome_arquivo = url.split("/")[-1]  # ex: "ultimas-4-semanas-gasolina-etanol.csv"
+        caminho = DIR_DADOS_BRUTOS / nome_arquivo
+        if not baixar_arquivo(url, caminho):
+            continue
+        df = carregar_arquivo(caminho)
+        if df is not None:
+            df_agr = filtrar_e_agregar(df)
+            if not df_agr.empty:
+                frames_novos.append(df_agr)
+                print(f"  [OK] {len(df_agr)} grupos de dados semanais.")
+
+    # ── 2. Coleta MENSAL (histórico) ─────────────────────────────────────────
+    print("\n[COLETA MENSAL] Últimos meses")
+    for alvo in gerar_urls_mensais():
         print(f"\n[MÊS {alvo['ref']}]")
         for chave, url in [
             ("gasolina-etanol", alvo["url_gasolina_etanol"]),
             ("diesel-gnv",      alvo["url_diesel_gnv"]),
         ]:
-            caminho = DIR_DADOS_BRUTOS / f"anp_{alvo['ref']}_{chave}.csv"
+            caminho = DIR_DADOS_BRUTOS / f"anp_{alvo['ref']}_{chave}.xlsx"
             if not baixar_arquivo(url, caminho):
                 continue
-            df = carregar_csv_anp(caminho)
-            if df is None:
-                continue
-            df_agr = filtrar_e_agregar(df)
-            if not df_agr.empty:
-                frames.append(df_agr)
-                print(f"  [OK] {len(df_agr)} grupos de {caminho.name}")
+            df = carregar_arquivo(caminho)
+            if df is not None:
+                df_agr = filtrar_e_agregar(df)
+                if not df_agr.empty:
+                    frames_novos.append(df_agr)
+                    print(f"  [OK] {len(df_agr)} grupos de {caminho.name}")
 
-    if not frames:
+    if not frames_novos:
         print("\n[ERRO FATAL] Nenhum dado coletado.")
         exit(1)
 
-    df_total = pd.concat(frames, ignore_index=True)
-    df_total = df_total.drop_duplicates(
-        subset=["semana_ref", "Estado - Sigla", "Produto", "Bandeira"]
-    )
+    df_novo = pd.concat(frames_novos, ignore_index=True)
 
-    saida = DIR_DADOS_BRUTOS / "agregado_consolidado.csv"
-    df_total.to_csv(saida, index=False, encoding="utf-8")
+    # ── 3. Mescla com histórico existente ─────────────────────────────────────
+    df_historico = carregar_historico_existente()
+    if not df_historico.empty:
+        df_total = pd.concat([df_historico, df_novo], ignore_index=True)
+    else:
+        df_total = df_novo
 
-    print(f"\n[CONCLUÍDO] {len(df_total)} registros · "
-          f"{df_total['semana_ref'].nunique()} semanas · salvo em {saida.name}")
+    # ── 4. Salva ──────────────────────────────────────────────────────────────
+    salvar_historico(df_total)
+
+    print(f"\n[CONCLUÍDO] {len(df_total)} registros totais · "
+          f"{df_total['semana_ref'].nunique()} semanas · salvo em {ARQUIVO_HISTORICO.name}")
     print("[PRÓXIMO] Execute calcular_margens.py")
 
 

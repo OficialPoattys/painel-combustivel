@@ -24,18 +24,36 @@ const S = {
   price: { fontWeight: 600, color: '#0F172A' },
 }
 
+// Mapeamento de rótulos curtos para cada combustível
+const ROTULOS_PRODUTOS = {
+  'GASOLINA COMUM':     'GAS C',
+  'ETANOL HIDRATADO':   'ETANOL',
+  'GASOLINA ADITIVADA': 'GAS ADTV',
+  'DIESEL':             'DIESEL',
+  'DIESEL S10':         'DIESEL S10',
+}
+
+// Ordem de exibição no ticker
+const ORDEM_PRODUTOS = [
+  'GASOLINA COMUM',
+  'ETANOL HIDRATADO',
+  'GASOLINA ADITIVADA',
+  'DIESEL',
+  'DIESEL S10',
+]
+
 export default function Ticker({ dados }) {
   if (!dados) return null
 
   // Monta os itens do ticker: um por estado × produto
   const itens = []
-  const estados = Object.keys(dados.por_estado ?? {})
-  const produtos = { 'GASOLINA COMUM': 'GAS C', 'ETANOL HIDRATADO': 'ETANOL', 'GASOLINA ADITIVADA': 'GAS ADTV' }
+  const estados = Object.keys(dados.por_estado ?? {}).sort()
 
   estados.forEach(uf => {
-    Object.entries(produtos).forEach(([prodKey, prodLabel]) => {
+    ORDEM_PRODUTOS.forEach(prodKey => {
       const d = dados.por_estado[uf]?.[prodKey]
       if (!d) return
+      const prodLabel = ROTULOS_PRODUTOS[prodKey] ?? prodKey
       itens.push({ uf, prodLabel, preco: d.preco_medio, var: d.variacao_vs_semana_anterior })
     })
   })

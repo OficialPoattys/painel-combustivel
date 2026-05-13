@@ -1,18 +1,22 @@
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+  Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 
 const PRECO_PRODUTOR = {
   'GASOLINA COMUM':     3.09,
   'ETANOL HIDRATADO':   2.85,
   'GASOLINA ADITIVADA': 3.09,
+  'DIESEL':             3.45,
+  'DIESEL S10':         3.52,
 }
 
 const NOMES_PRODUTOS = {
   'GASOLINA COMUM':     'Gasolina Comum',
-  'ETANOL HIDRATADO':  'Etanol Hidratado',
+  'ETANOL HIDRATADO':   'Etanol Hidratado',
   'GASOLINA ADITIVADA': 'Gasolina Aditivada',
+  'DIESEL':             'Diesel',
+  'DIESEL S10':         'Diesel S10',
 }
 
 // Formata "2025-20" → "Sem 20"
@@ -43,7 +47,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function GraficoEvolucao({ dados, estado, produto }) {
   const serie = dados?.series_historicas?.[estado]?.[produto] ?? []
-  const produtorRef = PRECO_PRODUTOR[produto]
+  const produtorRef = PRECO_PRODUTOR[produto] ?? 0
 
   if (serie.length === 0) {
     return (
@@ -61,10 +65,11 @@ export default function GraficoEvolucao({ dados, estado, produto }) {
     'Margem Estimada': d.margem_bruta,
   }))
 
-  // Calcula domain do eixo Y com uma margem de 10%
+  // Calcula domain do eixo Y com uma margem de 30 centavos
   const precos = data.map(d => d['Preço na Bomba'])
-  const yMin = Math.max(0, Math.min(...precos, produtorRef) - 0.30).toFixed(2)
-  const yMax = (Math.max(...precos, produtorRef) + 0.30).toFixed(2)
+  const refPreco = produtorRef > 0 ? produtorRef : Math.min(...precos)
+  const yMin = Math.max(0, Math.min(...precos, refPreco) - 0.30).toFixed(2)
+  const yMax = (Math.max(...precos, refPreco) + 0.30).toFixed(2)
 
   return (
     <div style={{
@@ -115,14 +120,16 @@ export default function GraficoEvolucao({ dados, estado, produto }) {
             dot={{ r: 3, fill: '#3B82F6' }}
             activeDot={{ r: 5 }}
           />
-          <Line
-            type="monotone"
-            dataKey="Preço do Produtor"
-            stroke="#94A3B8"
-            strokeWidth={1.5}
-            strokeDasharray="5 4"
-            dot={false}
-          />
+          {produtorRef > 0 && (
+            <Line
+              type="monotone"
+              dataKey="Preço do Produtor"
+              stroke="#94A3B8"
+              strokeWidth={1.5}
+              strokeDasharray="5 4"
+              dot={false}
+            />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>

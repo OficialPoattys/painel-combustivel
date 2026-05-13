@@ -26,27 +26,27 @@ THRESHOLD_ATENCAO_PCT  = 7.0    # 🟡 amarelo
 
 # Peso estimado de tributos por estado (ICMS + federais, em R$/litro)
 # Fonte: ANP - Composição de Preços (atualizar mensalmente)
-# Valores aproximados para v1 — será refinado com dados reais da ANP
+# Nomes dos produtos alinhados com o CSV real da ANP
 TRIBUTOS_POR_ESTADO = {
-    "SP": {"GASOLINA": 2.18, "ETANOL": 0.52, "DIESEL": 1.42, "DIESEL S10": 1.45},
-    "RJ": {"GASOLINA": 2.31, "ETANOL": 0.55, "DIESEL": 1.51, "DIESEL S10": 1.54},
-    "MG": {"GASOLINA": 2.09, "ETANOL": 0.49, "DIESEL": 1.38, "DIESEL S10": 1.41},
-    "RS": {"GASOLINA": 2.24, "ETANOL": 0.52, "DIESEL": 1.46, "DIESEL S10": 1.49},
-    "PR": {"GASOLINA": 2.21, "ETANOL": 0.50, "DIESEL": 1.44, "DIESEL S10": 1.47},
-    "BA": {"GASOLINA": 2.27, "ETANOL": 0.54, "DIESEL": 1.48, "DIESEL S10": 1.51},
-    "GO": {"GASOLINA": 2.15, "ETANOL": 0.48, "DIESEL": 1.40, "DIESEL S10": 1.43},
-    "DF": {"GASOLINA": 2.12, "ETANOL": 0.51, "DIESEL": 1.39, "DIESEL S10": 1.42},
+    "SP": {"GASOLINA COMUM": 2.18, "ETANOL HIDRATADO": 0.52, "DIESEL": 1.42, "DIESEL S10": 1.45, "GASOLINA ADITIVADA": 2.18},
+    "RJ": {"GASOLINA COMUM": 2.31, "ETANOL HIDRATADO": 0.55, "DIESEL": 1.51, "DIESEL S10": 1.54, "GASOLINA ADITIVADA": 2.31},
+    "MG": {"GASOLINA COMUM": 2.09, "ETANOL HIDRATADO": 0.49, "DIESEL": 1.38, "DIESEL S10": 1.41, "GASOLINA ADITIVADA": 2.09},
+    "RS": {"GASOLINA COMUM": 2.24, "ETANOL HIDRATADO": 0.52, "DIESEL": 1.46, "DIESEL S10": 1.49, "GASOLINA ADITIVADA": 2.24},
+    "PR": {"GASOLINA COMUM": 2.21, "ETANOL HIDRATADO": 0.50, "DIESEL": 1.44, "DIESEL S10": 1.47, "GASOLINA ADITIVADA": 2.21},
+    "BA": {"GASOLINA COMUM": 2.27, "ETANOL HIDRATADO": 0.54, "DIESEL": 1.48, "DIESEL S10": 1.51, "GASOLINA ADITIVADA": 2.27},
+    "GO": {"GASOLINA COMUM": 2.15, "ETANOL HIDRATADO": 0.48, "DIESEL": 1.40, "DIESEL S10": 1.43, "GASOLINA ADITIVADA": 2.15},
+    "DF": {"GASOLINA COMUM": 2.12, "ETANOL HIDRATADO": 0.51, "DIESEL": 1.39, "DIESEL S10": 1.42, "GASOLINA ADITIVADA": 2.12},
 }
 
 # Preço de referência do produtor/importador (Petrobras + média importadores)
 # Fonte: ANP - Preços de Produtores e Importadores
-# IMPORTANTE: Este dicionário deve ser atualizado pelo coletor quando a ANP publicar novos dados
-# Por ora, usamos valores de referência para v1 (R$/litro na porta da refinaria)
+# IMPORTANTE: Este dicionário deve ser atualizado quando a ANP publicar novos dados
 PRECO_PRODUTOR_REFERENCIA = {
-    "GASOLINA":    3.09,  # Gasolina A — base Petrobras (atualizar mensalmente)
-    "ETANOL":      2.85,  # Preço médio na usina
-    "DIESEL":      3.45,  # Diesel A na porta da refinaria
-    "DIESEL S10":  3.52,  # Diesel A S10 na porta da refinaria
+    "GASOLINA COMUM":     3.09,  # Gasolina A — base Petrobras (atualizar mensalmente)
+    "ETANOL HIDRATADO":   2.85,  # Preço médio na usina
+    "DIESEL":             3.45,  # Diesel A na porta da refinaria
+    "DIESEL S10":         3.52,  # Diesel A S10 na porta da refinaria
+    "GASOLINA ADITIVADA": 3.09,  # Mesma base da comum + estimativa de aditivo
 }
 
 # ─── Funções principais ───────────────────────────────────────────────────────
