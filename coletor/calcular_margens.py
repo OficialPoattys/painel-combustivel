@@ -28,14 +28,14 @@ THRESHOLD_ATENCAO_PCT  = 7.0    # 🟡 amarelo
 # Fonte: ANP - Composição de Preços (atualizar mensalmente)
 # Valores aproximados para v1 — será refinado com dados reais da ANP
 TRIBUTOS_POR_ESTADO = {
-    "SP": {"GASOLINA COMUM": 2.18, "ETANOL HIDRATADO": 0.52, "GASOLINA ADITIVADA": 2.18},
-    "RJ": {"GASOLINA COMUM": 2.31, "ETANOL HIDRATADO": 0.55, "GASOLINA ADITIVADA": 2.31},
-    "MG": {"GASOLINA COMUM": 2.09, "ETANOL HIDRATADO": 0.49, "GASOLINA ADITIVADA": 2.09},
-    "RS": {"GASOLINA COMUM": 2.24, "ETANOL HIDRATADO": 0.52, "GASOLINA ADITIVADA": 2.24},
-    "PR": {"GASOLINA COMUM": 2.21, "ETANOL HIDRATADO": 0.50, "GASOLINA ADITIVADA": 2.21},
-    "BA": {"GASOLINA COMUM": 2.27, "ETANOL HIDRATADO": 0.54, "GASOLINA ADITIVADA": 2.27},
-    "GO": {"GASOLINA COMUM": 2.15, "ETANOL HIDRATADO": 0.48, "GASOLINA ADITIVADA": 2.15},
-    "DF": {"GASOLINA COMUM": 2.12, "ETANOL HIDRATADO": 0.51, "GASOLINA ADITIVADA": 2.12},
+    "SP": {"GASOLINA": 2.18, "ETANOL": 0.52, "DIESEL": 1.42, "DIESEL S10": 1.45},
+    "RJ": {"GASOLINA": 2.31, "ETANOL": 0.55, "DIESEL": 1.51, "DIESEL S10": 1.54},
+    "MG": {"GASOLINA": 2.09, "ETANOL": 0.49, "DIESEL": 1.38, "DIESEL S10": 1.41},
+    "RS": {"GASOLINA": 2.24, "ETANOL": 0.52, "DIESEL": 1.46, "DIESEL S10": 1.49},
+    "PR": {"GASOLINA": 2.21, "ETANOL": 0.50, "DIESEL": 1.44, "DIESEL S10": 1.47},
+    "BA": {"GASOLINA": 2.27, "ETANOL": 0.54, "DIESEL": 1.48, "DIESEL S10": 1.51},
+    "GO": {"GASOLINA": 2.15, "ETANOL": 0.48, "DIESEL": 1.40, "DIESEL S10": 1.43},
+    "DF": {"GASOLINA": 2.12, "ETANOL": 0.51, "DIESEL": 1.39, "DIESEL S10": 1.42},
 }
 
 # Preço de referência do produtor/importador (Petrobras + média importadores)
@@ -43,41 +43,31 @@ TRIBUTOS_POR_ESTADO = {
 # IMPORTANTE: Este dicionário deve ser atualizado pelo coletor quando a ANP publicar novos dados
 # Por ora, usamos valores de referência para v1 (R$/litro na porta da refinaria)
 PRECO_PRODUTOR_REFERENCIA = {
-    "GASOLINA COMUM": 3.09,      # Gasolina A (sem etanol) — base Petrobras
-    "ETANOL HIDRATADO": 2.85,    # Preço médio na usina
-    "GASOLINA ADITIVADA": 3.09,  # Mesma base da comum + custo aditivo ~R$0,05
+    "GASOLINA":    3.09,  # Gasolina A — base Petrobras (atualizar mensalmente)
+    "ETANOL":      2.85,  # Preço médio na usina
+    "DIESEL":      3.45,  # Diesel A na porta da refinaria
+    "DIESEL S10":  3.52,  # Diesel A S10 na porta da refinaria
 }
 
 # ─── Funções principais ───────────────────────────────────────────────────────
 
 def carregar_historico() -> pd.DataFrame:
     """
-    Carrega todos os CSVs agregados disponíveis em dados/brutos/
-    e retorna um DataFrame unificado com as últimas SEMANAS_HISTORICO semanas.
+    Carrega o CSV consolidado gerado pelo coletar.py.
     """
-    arquivos = sorted(glob.glob(str(DIR_DADOS_BRUTOS / "agregado_*.csv")))
-    
-    if not arquivos:
-        print("[AVISO] Nenhum histórico encontrado. Primeira execução?")
+    caminho = DIR_DADOS_BRUTOS / "agregado_consolidado.csv"
+
+    if not caminho.exists():
+        print("[AVISO] agregado_consolidado.csv não encontrado. Execute coletar.py primeiro.")
         return pd.DataFrame()
-    
-    # Pega as últimas N semanas
-    arquivos_recentes = arquivos[-SEMANAS_HISTORICO:]
-    
-    dfs = []
-    for arquivo in arquivos_recentes:
-        try:
-            df = pd.read_csv(arquivo)
-            dfs.append(df)
-        except Exception as e:
-            print(f"[AVISO] Erro ao carregar {arquivo}: {e}")
-    
-    if not dfs:
+
+    try:
+        df = pd.read_csv(caminho)
+        print(f"[OK] Histórico carregado: {len(df)} registros · {df['semana_ref'].nunique()} semanas.")
+        return df
+    except Exception as e:
+        print(f"[ERRO] Falha ao carregar histórico: {e}")
         return pd.DataFrame()
-    
-    df_historico = pd.concat(dfs, ignore_index=True)
-    print(f"[OK] Histórico carregado: {len(df_historico)} registros de {len(arquivos_recentes)} semanas.")
-    return df_historico
 
 
 def calcular_margem_bruta(preco_bomba: float, estado: str, produto: str) -> float:
