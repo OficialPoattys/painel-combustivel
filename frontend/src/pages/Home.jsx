@@ -4,6 +4,7 @@ import { useDados } from '../hooks/useDados'
 import Header from '../components/Header'
 import Ticker from '../components/Ticker'
 import AlertBanner from '../components/AlertBanner'
+import Footer from '../components/Footer'
 import Filtros from '../components/Filtros'
 import ResumoNacional from '../components/ResumoNacional'
 import CardBandeira from '../components/CardBandeira'
@@ -84,10 +85,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="footer">
-        <span><strong>Bomba Aberta</strong> — Dados: ANP (gov.br) · Semana {dados?.meta?.semana_referencia ?? '–'} · Atualizado toda segunda-feira</span>
-        <span>{isMock && <span style={{ color: '#3B82F6' }}>Modo demonstração · </span>}Metodologia e fontes disponíveis na aba <strong>Metodologia</strong></span>
-      </footer>
+      <Footer isMock={isMock} semanaRef={dados?.meta?.semana_referencia} />
     </>
   )
 }
