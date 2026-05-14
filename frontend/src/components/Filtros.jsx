@@ -10,22 +10,6 @@ const NOMES_ESTADOS = {
   GO: 'Goiás', DF: 'Distrito Federal',
 }
 
-const S = {
-  wrap: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '20px',
-    flexWrap: 'wrap',
-  },
-  label: {
-    fontSize: '12px',
-    color: '#64748B',
-    fontWeight: 500,
-    marginRight: '2px',
-  },
-}
-
 export default function Filtros({ dados, estado, produto, onEstado, onProduto }) {
   if (!dados) return null
 
@@ -33,28 +17,18 @@ export default function Filtros({ dados, estado, produto, onEstado, onProduto })
   const produtos  = dados.meta?.combustiveis_monitorados ?? []
 
   return (
-    <div style={S.wrap}>
-      <span style={S.label}>Visualizando:</span>
-
-      <select
-        className="select-pill"
-        value={estado}
-        onChange={e => onEstado(e.target.value)}
-      >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', flexWrap: 'wrap' }}>
+      <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', fontWeight: 500, marginRight: '2px' }}>Visualizando:</span>
+      <select className="select-pill" value={estado} onChange={e => onEstado(e.target.value)}>
         {estados.map(uf => (
           <option key={uf} value={uf}>{NOMES_ESTADOS[uf] ?? uf} — {uf}</option>
         ))}
       </select>
-
-      <select
-        className="select-pill"
-        value={produto}
-        onChange={e => onProduto(e.target.value)}
-      >
+      <select className="select-pill" value={produto} onChange={e => onProduto(e.target.value)}>
         {produtos.map(p => (
           <option key={p} value={p}>{NOMES_PRODUTOS[p] ?? p}</option>
         ))}
       </select>
     </div>
-  )
+  );
 }
