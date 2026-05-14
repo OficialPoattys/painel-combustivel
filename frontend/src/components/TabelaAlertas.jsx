@@ -27,7 +27,7 @@ export default function TabelaAlertas({ alertas = [] }) {
   }
 
   return (
-    <div className="card alertas-table">
+    <div id="tabela-alertas" className="card alertas-table">   {/* ← ID adicionado */}
       <div className="alertas-header">
         <span>Alertas da semana</span>
         <span className="alertas-count">
