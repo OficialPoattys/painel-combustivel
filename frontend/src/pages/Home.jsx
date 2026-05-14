@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { useDados } from '../hooks/useDados'
 
-import Header from '../components/Header'
 import Ticker from '../components/Ticker'
 import AlertBanner from '../components/AlertBanner'
-import Footer from '../components/Footer'
 import Filtros from '../components/Filtros'
 import ResumoNacional from '../components/ResumoNacional'
 import CardBandeira from '../components/CardBandeira'
@@ -41,7 +39,6 @@ export default function Home() {
 
   return (
     <>
-      <Header />
       <Ticker dados={dados} />
       <AlertBanner alertas={dados?.alertas ?? []} isMock={isMock} />
 
@@ -84,8 +81,6 @@ export default function Home() {
           <TabelaAlertas alertas={dados?.alertas ?? []} />
         </div>
       </main>
-
-      <Footer isMock={isMock} semanaRef={dados?.meta?.semana_referencia} />
     </>
   )
 }

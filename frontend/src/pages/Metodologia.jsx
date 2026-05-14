@@ -62,11 +62,11 @@ export default function Metodologia() {
         </div>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '24px' }}>
+      <div style={{ textAlign: 'center', marginTop: '24px', marginBottom: '32px' }}>
         <Link to="/" className="select-pill" style={{ textDecoration: 'none', display: 'inline-block' }}>
           ← Voltar ao painel
         </Link>
       </div>
     </div>
-  );
+  )
 }
