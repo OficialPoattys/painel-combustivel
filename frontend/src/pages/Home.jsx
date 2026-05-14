@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useDados } from '../hooks/useDados'
 
-import Header from '../../components/Header'
-import Ticker from '../../components/Ticker'
-import AlertBanner from '../../components/AlertBanner'
-import Filtros from '../../components/Filtros'
-import ResumoNacional from '../../components/ResumoNacional'
-import CardBandeira from '../../components/CardBandeira'
-import GraficoEvolucao from '../../components/GraficoEvolucao'
-import TabelaAlertas from '../../components/TabelaAlertas'
+import Header from '../components/Header'
+import Ticker from '../components/Ticker'
+import AlertBanner from '../components/AlertBanner'
+import Filtros from '../components/Filtros'
+import ResumoNacional from '../components/ResumoNacional'
+import CardBandeira from '../components/CardBandeira'
+import GraficoEvolucao from '../components/GraficoEvolucao'
+import TabelaAlertas from '../components/TabelaAlertas'
 
 export default function Home() {
   const { dados, loading, isMock } = useDados()
