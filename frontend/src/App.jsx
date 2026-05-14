@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Header from './components/Header'
+import Layout from './components/Layout'
 import Home from './pages/Home'
 import Sobre from './pages/Sobre'
 import Metodologia from './pages/Metodologia'
@@ -7,16 +7,15 @@ import Metodologia from './pages/Metodologia'
 function App() {
   return (
     <BrowserRouter>
-      <div className="app">
-        <Header />
-        <Routes>
+      <Routes>
+        <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/sobre" element={<Sobre />} />
           <Route path="/metodologia" element={<Metodologia />} />
-        </Routes>
-      </div>
+        </Route>
+      </Routes>
     </BrowserRouter>
-  );
+  )
 }
 
-export default App;
+export default App
