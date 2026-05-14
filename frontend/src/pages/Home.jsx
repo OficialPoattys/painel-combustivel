@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useDados } from './hooks/useDados'
+import { useDados } from '../hooks/useDados.js'
 
 import Header         from './components/Header'
 import Ticker         from './components/Ticker'
