@@ -1,41 +1,65 @@
 import { useState, useEffect } from 'react'
 import { mockDados } from '../mockDados'
 
-/*
-  useDados
-  Tenta buscar /dados.json (copiado pelo GitHub Actions para frontend/public/).
-  Se não encontrar (ambiente de dev sem dados reais), usa mockDados como fallback.
-*/
+/**
+ * useDados (Versão Corrigida)
+ * - Adiciona tratamento de erro robusto
+ * - Evita loops de renderização
+ * - Garante que o estado de loading seja limpo corretamente
+ */
 export function useDados() {
-  const [dados, setDados]   = useState(null)
+  const [dados, setDados] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [erro, setErro]     = useState(null)
+  const [erro, setErro] = useState(null)
   const [isMock, setIsMock] = useState(false)
 
   useEffect(() => {
+    let isMounted = true
     const controller = new AbortController()
 
     async function carregar() {
       try {
-        const res = await fetch('/dados.json', { signal: controller.signal })
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        // Tenta buscar o JSON real
+        const res = await fetch('/dados.json', { 
+          signal: controller.signal,
+          headers: { 'Cache-Control': 'no-cache' } 
+        })
+
+        if (!res.ok) {
+          throw new Error(`Erro ao carregar dados: ${res.status}`)
+        }
+
         const json = await res.json()
-        setDados(json)
-        setIsMock(false)
+        
+        if (isMounted) {
+          setDados(json)
+          setIsMock(false)
+          setErro(null)
+        }
       } catch (err) {
         if (err.name === 'AbortError') return
-        // Fallback: usa dados de demonstração
-        console.warn('[useDados] dados.json não encontrado — usando dados de demonstração.')
-        setDados(mockDados)
-        setIsMock(true)
-        setErro(null)
+
+        console.error('[useDados] Erro na busca:', err.message)
+        
+        if (isMounted) {
+          // Fallback para mock apenas se não houver dados anteriores
+          setDados(prev => prev || mockDados)
+          setIsMock(true)
+          setErro(err.message)
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     carregar()
-    return () => controller.abort()
+
+    return () => {
+      isMounted = false
+      controller.abort()
+    }
   }, [])
 
   return { dados, loading, erro, isMock }
