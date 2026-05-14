@@ -1,25 +1,25 @@
 import { useState } from 'react'
-import { useDados } from '../hooks/useDados.js'
+import { useDados } from '../hooks/useDados'
 
-import Header         from './components/Header'
-import Ticker         from './components/Ticker'
-import AlertBanner    from './components/AlertBanner'
-import Filtros        from './components/Filtros'
-import ResumoNacional from './components/ResumoNacional'
-import CardBandeira   from './components/CardBandeira'
-import GraficoEvolucao from './components/GraficoEvolucao'
-import TabelaAlertas  from './components/TabelaAlertas'
+import Header from '../../components/Header'
+import Ticker from '../../components/Ticker'
+import AlertBanner from '../../components/AlertBanner'
+import Filtros from '../../components/Filtros'
+import ResumoNacional from '../../components/ResumoNacional'
+import CardBandeira from '../../components/CardBandeira'
+import GraficoEvolucao from '../../components/GraficoEvolucao'
+import TabelaAlertas from '../../components/TabelaAlertas'
 
-export default function App() {
+export default function Home() {
   const { dados, loading, isMock } = useDados()
 
-  const estadosDisponiveis  = dados?.meta?.estados_monitorados ?? []
+  const estadosDisponiveis = dados?.meta?.estados_monitorados ?? []
   const produtosDisponiveis = dados?.meta?.combustiveis_monitorados ?? []
 
-  const [estadoSel, setEstadoSel]   = useState(null)
+  const [estadoSel, setEstadoSel] = useState(null)
   const [produtoSel, setProdutoSel] = useState(null)
 
-  const estado  = estadoSel  ?? estadosDisponiveis[0]  ?? 'SP'
+  const estado = estadoSel ?? estadosDisponiveis[0] ?? 'SP'
   const produto = produtoSel ?? produtosDisponiveis[0] ?? 'GASOLINA COMUM'
 
   const bandeiras = dados?.por_estado?.[estado]?.[produto]?.por_bandeira ?? []
@@ -39,7 +39,7 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <>
       <Header />
       <Ticker dados={dados} />
       <AlertBanner alertas={dados?.alertas ?? []} isMock={isMock} />
@@ -49,7 +49,7 @@ export default function App() {
           dados={dados}
           estado={estado}
           produto={produto}
-          onEstado={v  => setEstadoSel(v)}
+          onEstado={v => setEstadoSel(v)}
           onProduto={v => setProdutoSel(v)}
         />
 
@@ -88,6 +88,6 @@ export default function App() {
         <span><strong>Bomba Aberta</strong> — Dados: ANP (gov.br) · Semana {dados?.meta?.semana_referencia ?? '–'} · Atualizado toda segunda-feira</span>
         <span>{isMock && <span style={{ color: '#3B82F6' }}>Modo demonstração · </span>}Metodologia e fontes disponíveis na aba <strong>Metodologia</strong></span>
       </footer>
-    </div>
-  );
+    </>
+  )
 }
