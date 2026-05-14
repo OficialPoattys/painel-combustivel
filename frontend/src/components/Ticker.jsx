@@ -34,7 +34,10 @@ export default function Ticker({ dados }) {
       const d = dados.por_estado[uf]?.[prodKey]
       if (!d) return
       const prodLabel = ROTULOS_PRODUTOS[prodKey] ?? prodKey
-      itens.push({ uf, prodLabel, preco: d.preco_medio, var: d.variacao_vs_semana_anterior })
+      // Garante que preco e var existam
+      const preco = d.preco_medio ?? 0
+      const variacao = d.variacao_vs_semana_anterior ?? 0
+      itens.push({ uf, prodLabel, preco, var: variacao })
     })
   })
 
@@ -53,5 +56,5 @@ export default function Ticker({ dados }) {
         ))}
       </div>
     </div>
-  );
+  )
 }
