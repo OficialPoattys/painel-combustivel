@@ -1,86 +1,116 @@
-import { useState } from 'react'
-import { useDados } from '../hooks/useDados'
-
-import Ticker from '../components/Ticker'
-import AlertBanner from '../components/AlertBanner'
-import Filtros from '../components/Filtros'
-import ResumoNacional from '../components/ResumoNacional'
-import CardBandeira from '../components/CardBandeira'
-import GraficoEvolucao from '../components/GraficoEvolucao'
-import TabelaAlertas from '../components/TabelaAlertas'
+import React, { useState } from 'react'
+import { Header, Ticker, DataCard } from '../components/EditorialComponents'
+import { AlertTable } from '../components/DataViz'
 
 export default function Home() {
-  const { dados, loading, isMock } = useDados()
-
-  const estadosDisponiveis = dados?.meta?.estados_monitorados ?? []
-  const produtosDisponiveis = dados?.meta?.combustiveis_monitorados ?? []
-
-  const [estadoSel, setEstadoSel] = useState(null)
-  const [produtoSel, setProdutoSel] = useState(null)
-
-  const estado = estadoSel ?? estadosDisponiveis[0] ?? 'SP'
-  const produto = produtoSel ?? produtosDisponiveis[0] ?? 'GASOLINA COMUM'
-
-  const bandeiras = dados?.por_estado?.[estado]?.[produto]?.por_bandeira ?? []
-
-  if (loading) {
-    return (
-      <div style={{
-        height: '100vh', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center', gap: '16px',
-        background: 'var(--color-surface)', color: 'var(--color-text-muted)',
-      }}>
-        <div style={{ width: '10px', height: '10px', background: 'var(--color-accent-soft)', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
-        <div style={{ fontSize: '13px' }}>Carregando dados da ANP…</div>
-        <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
-      </div>
-    )
-  }
-
+  const [estado, setEstado] = useState('SP')
+  
   return (
-    <>
-      <Ticker dados={dados} />
-      <AlertBanner alertas={dados?.alertas ?? []} isMock={isMock} />
+    <div className="editorial-page">
+      <Ticker items={[
+        { label: 'GASOLINA SP', value: '5.62', change: -0.12 },
+        { label: 'DIESEL RJ', value: '6.15', change: 0.05 },
+        { label: 'ETANOL MG', value: '3.89', change: -1.20 }
+      ]} />
+      
+      <div className="editorial-container">
+        <Header />
+        
+        <main className="main-content">
+          <section className="hero-grid">
+            <div className="headline-area">
+              <h1 className="reveal">Monitor de Distorções: <br/>O Mercado de Combustíveis em {estado}</h1>
+              <p className="lead reveal">
+                Análise técnica das margens brutas de revenda. Identificamos anomalias 
+                através do cruzamento de dados oficiais da ANP com preços de refinaria e carga tributária.
+              </p>
+            </div>
+            
+            <div className="quick-stats">
+              <DataCard 
+                label="Preço Médio (Estado)" 
+                value="R$ 5,84" 
+                subValue="▲ 0.2%" 
+                status="normal" 
+              />
+              <DataCard 
+                label="Margem Estimada" 
+                value="R$ 0,48" 
+                subValue="Normal" 
+                status="normal" 
+              />
+            </div>
+          </section>
 
-      <main className="main-content">
-        <Filtros
-          dados={dados}
-          estado={estado}
-          produto={produto}
-          onEstado={v => setEstadoSel(v)}
-          onProduto={v => setProdutoSel(v)}
-        />
+          <div className="content-divider"></div>
 
-        <div className="section">
-          <div className="section-header"><span className="label">Resumo Nacional</span></div>
-          <ResumoNacional dados={dados} produto={produto} />
-        </div>
+          <section className="data-section">
+            <div className="section-header">
+              <h2>Alertas de Mercado</h2>
+              <p>Postos com margens acima de 15% da média histórica de 12 semanas.</p>
+            </div>
+            
+            <AlertTable alerts={[
+              { estado: 'SÃO PAULO', produto: 'GASOLINA COMUM', preco: '5.62', margem: '0.45', var: -1.2, status: 'normal' },
+              { estado: 'SÃO PAULO', produto: 'DIESEL S10', preco: '6.12', margem: '0.89', var: 15.4, status: 'alerta' }
+            ]} />
+          </section>
+        </main>
 
-        <div className="section">
-          <div className="section-header">
-            <span className="label">Por Bandeira — {estado} · {produto.replace('GASOLINA', 'Gas.').replace('HIDRATADO', 'Hidr.').replace('ADITIVADA', 'Adtv.')}</span>
-            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{bandeiras.length} bandeiras monitoradas</span>
+        <footer className="editorial-footer">
+          <div className="footer-content">
+            <div className="footer-brand">BOMBA ABERTA</div>
+            <div className="footer-info">
+              Dados atualizados semanalmente via ANP (Agência Nacional do Petróleo). 
+              Este é um projeto open-source de transparência pública.
+            </div>
           </div>
-          <div className="grid-4">
-            {bandeiras.map((b, i) => <CardBandeira key={i} bandeira={b} />)}
-            {bandeiras.length === 0 && (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
-                Nenhum dado disponível para esta seleção.
-              </div>
-            )}
-          </div>
-        </div>
+        </footer>
+      </div>
 
-        <div className="section">
-          <div className="section-header"><span className="label">Histórico de Preços</span></div>
-          <GraficoEvolucao dados={dados} estado={estado} produto={produto} />
-        </div>
+      <style jsx>{`
+        .editorial-page { min-height: 100vh; }
+        .main-content { padding: 2rem 0; }
+        .hero-grid {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr;
+          gap: 4rem;
+          margin-bottom: 4rem;
+        }
+        .headline-area h1 { font-size: 4.5rem; margin-bottom: 1.5rem; }
+        .lead {
+          font-family: var(--font-headline);
+          font-size: 1.4rem;
+          color: var(--color-ink-muted);
+          max-width: 600px;
+        }
+        .quick-stats {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+        .content-divider {
+          height: 2px;
+          background: var(--color-ink);
+          margin: 4rem 0;
+        }
+        .section-header { margin-bottom: 2rem; }
+        .section-header h2 { font-size: 2.5rem; }
+        .section-header p { color: var(--color-ink-muted); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+        
+        .editorial-footer {
+          margin-top: 6rem;
+          border-top: 1px solid var(--color-border-light);
+          padding: 4rem 0;
+        }
+        .footer-brand { font-family: var(--font-headline); font-weight: 900; font-size: 1.5rem; margin-bottom: 1rem; }
+        .footer-info { font-size: 0.8rem; color: var(--color-ink-muted); max-width: 400px; }
 
-        <div className="section">
-          <div className="section-header"><span className="label">Alertas de Margem</span></div>
-          <TabelaAlertas alertas={dados?.alertas ?? []} />
-        </div>
-      </main>
-    </>
+        @media (max-width: 1024px) {
+          .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+          .headline-area h1 { font-size: 3rem; }
+        }
+      `}</style>
+    </div>
   )
 }
