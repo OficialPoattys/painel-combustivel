@@ -1,142 +1,142 @@
 {
   "meta": {
-    "ultima_atualizacao": "2026-09-07T17:58:25.360147",
+    "ultima_atualizacao": "2026-09-14T18:14:33.986881",
     "semana_referencia": "31/08/2026"
   },
   "estados": {
     "BA": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.951,
-        "margem_estimada": 1.591,
+        "preco_medio": 6.907,
+        "margem_estimada": 1.547,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 7.003,
-        "margem_estimada": 2.073,
+        "preco_medio": 7.001,
+        "margem_estimada": 2.071,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 7.357,
-        "margem_estimada": 2.327,
+        "preco_medio": 7.351,
+        "margem_estimada": 2.321,
         "status": "alerta"
       }
     },
     "DF": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.751,
-        "margem_estimada": 1.541,
+        "preco_medio": 6.772,
+        "margem_estimada": 1.562,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.928,
-        "margem_estimada": 2.088,
+        "preco_medio": 6.924,
+        "margem_estimada": 2.084,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.932,
-        "margem_estimada": 1.992,
+        "preco_medio": 6.942,
+        "margem_estimada": 2.002,
         "status": "alerta"
       }
     },
     "GO": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.762,
-        "margem_estimada": 1.522,
+        "preco_medio": 6.754,
+        "margem_estimada": 1.514,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.214,
-        "margem_estimada": 1.364,
+        "preco_medio": 6.235,
+        "margem_estimada": 1.385,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.689,
-        "margem_estimada": 1.739,
+        "preco_medio": 6.702,
+        "margem_estimada": 1.752,
         "status": "alerta"
       }
     },
     "MG": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.51,
-        "margem_estimada": 1.33,
+        "preco_medio": 6.529,
+        "margem_estimada": 1.349,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.77,
-        "margem_estimada": 1.84,
+        "preco_medio": 6.776,
+        "margem_estimada": 1.846,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.381,
-        "margem_estimada": 1.551,
+        "preco_medio": 6.375,
+        "margem_estimada": 1.545,
         "status": "alerta"
       }
     },
     "PR": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.75,
-        "margem_estimada": 1.45,
+        "preco_medio": 6.739,
+        "margem_estimada": 1.439,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.232,
-        "margem_estimada": 1.342,
+        "preco_medio": 6.262,
+        "margem_estimada": 1.372,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.899,
-        "margem_estimada": 1.909,
+        "preco_medio": 6.938,
+        "margem_estimada": 1.948,
         "status": "alerta"
       }
     },
     "RJ": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.842,
-        "margem_estimada": 1.442,
+        "preco_medio": 6.846,
+        "margem_estimada": 1.446,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 7.107,
-        "margem_estimada": 2.047,
+        "preco_medio": 7.106,
+        "margem_estimada": 2.046,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.936,
-        "margem_estimada": 1.976,
+        "preco_medio": 6.945,
+        "margem_estimada": 1.985,
         "status": "alerta"
       }
     },
     "RS": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.5,
-        "margem_estimada": 1.17,
+        "preco_medio": 6.478,
+        "margem_estimada": 1.148,
         "status": "normal"
       },
       "DIESEL": {
-        "preco_medio": 6.3,
-        "margem_estimada": 1.39,
+        "preco_medio": 6.31,
+        "margem_estimada": 1.4,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.581,
-        "margem_estimada": 1.571,
+        "preco_medio": 6.606,
+        "margem_estimada": 1.596,
         "status": "alerta"
       }
     },
     "SP": {
       "GASOLINA ADITIVADA": {
-        "preco_medio": 6.654,
-        "margem_estimada": 1.384,
+        "preco_medio": 6.653,
+        "margem_estimada": 1.383,
         "status": "alerta"
       },
       "DIESEL S10": {
-        "preco_medio": 6.887,
-        "margem_estimada": 1.917,
+        "preco_medio": 6.915,
+        "margem_estimada": 1.945,
         "status": "alerta"
       },
       "DIESEL": {
-        "preco_medio": 6.469,
-        "margem_estimada": 1.599,
+        "preco_medio": 6.475,
+        "margem_estimada": 1.605,
         "status": "alerta"
       }
     }
